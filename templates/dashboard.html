@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GSM - Professional Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #1e3c72; --secondary: #2a5298; --accent: #00d2ff; --light: #f8f9fc; }
+        body { background-color: var(--light); font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        #sidebar {
+            width: 280px; height: 100vh; position: fixed;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white; z-index: 1000; overflow-y: auto;
+        }
+        .nav-link { color: rgba(255,255,255,0.7); padding: 12px 20px; margin: 4px 15px; border-radius: 10px; cursor: pointer; text-decoration: none; display: block; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.2); color: white; }
+        .class-item { padding-left: 45px !important; font-size: 0.9rem; }
+        #main { margin-left: 280px; padding: 25px; min-height: 100vh; }
+        .top-nav { background: white; padding: 15px 30px; border-radius: 15px; box-shadow: 0 2px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .stat-card { border: none; border-radius: 15px; padding: 20px; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .btn-grad { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: white; border: none; }
+        .lab-box { background: #fff9e6; border: 2px dashed #ffc107; border-radius: 12px; padding: 15px; margin-top: 20px; }
+        .table thead { background: #f1f4f9; }
+        .score-bar { height: 8px; border-radius: 10px; background: #e9ecef; overflow: hidden; margin-top: 4px; }
+        .score-fill { height: 100%; border-radius: 10px; transition: width 0.5s; }
+        .present-badge { background: #d4edda; color: #155724; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+        .absent-badge { background: #f8d7da; color: #721c24; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<nav id="sidebar" class="shadow-lg">
+    <div class="p-4 text-center">
+        <h3 class="fw-bold mb-0"><i class="fas fa-user-shield me-2"></i> GSM ADMIN</h3>
+        <p class="small opacity-50">Smart School Solutions</p>
+        <hr class="text-white-50">
+    </div>
+    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist">
+        <a class="nav-link active" data-bs-toggle="pill" data-bs-target="#dash"><i class="fas fa-chart-line me-3"></i>Dashboard Overview</a>
+        <a class="nav-link" data-bs-toggle="collapse" href="#classSub"><i class="fas fa-graduation-cap me-3"></i>Manage Classes <i class="fas fa-angle-down float-end mt-1"></i></a>
+        <div class="collapse show" id="classSub">
+            {% for i in range(1, 11) %}
+            <a class="nav-link class-item" data-bs-toggle="pill" data-bs-target="#class{{i}}">Class {{i}} Portal</a>
+            {% endfor %}
+        </div>
+        <a class="nav-link" data-bs-toggle="pill" data-bs-target="#results"><i class="fas fa-file-signature me-3"></i>Result Portal</a>
+        <a class="nav-link" data-bs-toggle="pill" data-bs-target="#attendance"><i class="fas fa-calendar-check me-3"></i>Attendance</a>
+        <a class="nav-link" data-bs-toggle="pill" data-bs-target="#discipline"><i class="fas fa-star me-3"></i>Discipline Score</a>
+        <a class="nav-link" data-bs-toggle="pill" data-bs-target="#ptm"><i class="fas fa-users-rectangle me-3"></i>PTM & Meetings</a>
+    </div>
+</nav>
+
+<div id="main">
+    <div class="top-nav d-flex justify-content-between align-items-center">
+        <h4 class="mb-0 fw-bold text-secondary text-uppercase" style="letter-spacing: 1px;">School Management Panel</h4>
+        <div class="d-flex align-items-center">
+            <span class="me-3 fw-medium">Welcome, {{ 'Admin' if role == 'admin' else 'Parent' }}</span>
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                {{ 'AD' if role == 'admin' else 'PR' }}
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content">
+
+        <!-- ===== DASHBOARD TAB ===== -->
+        <div class="tab-pane fade show active" id="dash">
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card d-flex align-items-center border-start border-primary border-5">
+                        <div class="p-3 bg-light rounded-3 me-3"><i class="fas fa-user-graduate fa-2x text-primary"></i></div>
+                        <div><p class="text-muted mb-0">Total Students</p><h3 class="fw-bold mb-0">{{ students|length if students else 0 }}</h3></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card d-flex align-items-center border-start border-success border-5">
+                        <div class="p-3 bg-light rounded-3 me-3"><i class="fas fa-clock fa-2x text-success"></i></div>
+                        <div><p class="text-muted mb-0">Total Meetings</p><h3 class="fw-bold mb-0">{{ meetings|length if meetings else 0 }}</h3></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card d-flex align-items-center border-start border-warning border-5">
+                        <div class="p-3 bg-light rounded-3 me-3"><i class="fas fa-calendar-check fa-2x text-warning"></i></div>
+                        <div><p class="text-muted mb-0">Attendance Records</p><h3 class="fw-bold mb-0">{{ attendance|length if attendance else 0 }}</h3></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card d-flex align-items-center border-start border-danger border-5">
+                        <div class="p-3 bg-light rounded-3 me-3"><i class="fas fa-envelope fa-2x text-danger"></i></div>
+                        <div><p class="text-muted mb-0">Complaints</p><h3 class="fw-bold mb-0">{{ complaints|length if complaints else 0 }}</h3></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Registration Form -->
+            <div class="card p-4 border-0 shadow-sm rounded-4">
+                <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-user-plus me-2"></i>Registration with Full Details</h5>
+                <form action="/add" method="POST" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="small fw-bold">Name</label>
+                        <input type="text" name="name" class="form-control" {% if role == 'parent' %}readonly{% endif %} required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold">Roll No</label>
+                        <input type="text" name="roll_no" class="form-control" {% if role == 'parent' %}readonly{% endif %} required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold">Class</label>
+                        <select name="class" class="form-select" {% if role == 'parent' %}disabled{% endif %}>
+                            {% for i in range(1, 11) %}<option>Class {{i}}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small fw-bold">Phone Number</label>
+                        <input type="tel" name="phone" class="form-control" {% if role == 'parent' %}readonly{% endif %} placeholder="+92 XXX XXXXXXX">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small fw-bold">Home Address</label>
+                        <input type="text" name="address" class="form-control" {% if role == 'parent' %}readonly{% endif %} placeholder="Street, Area, City">
+                    </div>
+                    <div class="col-12 mt-3 text-end">
+                        {% if role == 'admin' %}
+                        <button type="submit" class="btn btn-grad px-5 py-2 fw-bold rounded-pill">Save Student Data</button>
+                        {% else %}
+                        <span class="badge bg-warning text-dark p-2 rounded-pill"><i class="fas fa-lock me-1"></i> View Only Mode</span>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+            <!-- Complaints Table -->
+            {% if role == 'admin' %}
+            <div class="card p-4 border-0 shadow-sm rounded-4 mt-4">
+                <h5 class="fw-bold mb-3 text-danger"><i class="fas fa-inbox me-2"></i>Received Complaints (Admin View)</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-danger"><tr><th>#</th><th>Feedback Message</th></tr></thead>
+                        <tbody>
+                            {% for c in complaints %}
+                            <tr><td>{{ loop.index }}</td><td>{{ c.feedback }}</td></tr>
+                            {% else %}
+                            <tr><td colspan="2" class="text-center text-muted">No complaints received yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ===== CLASS TABS ===== -->
+        {% for i in range(1, 11) %}
+        <div class="tab-pane fade" id="class{{i}}">
+            <h3 class="fw-bold mb-4">Class {{i}} Database</h3>
+            <div class="card p-4 shadow-sm border-0 rounded-4">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr><th>Student Name</th><th>Roll No</th><th>Contact</th><th>Address</th></tr>
+                        </thead>
+                        <tbody>
+                            {% set ns = namespace(count=0) %}
+                            {% for s in students %}
+                                {% if s.student_class == "Class " ~ i %}
+                                {% set ns.count = ns.count + 1 %}
+                                <tr>
+                                    <td><strong>{{ s.name }}</strong></td>
+                                    <td><code>{{ s.roll_no }}</code></td>
+                                    <td>{{ s.phone if s.phone else 'N/A' }}</td>
+                                    <td>{{ s.address if s.address else 'N/A' }}</td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                            {% if ns.count == 0 %}
+                            <tr><td colspan="4" class="text-center text-muted py-4">No student records found for Class {{i}}.</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- ===== RESULT PORTAL TAB ===== -->
+        <div class="tab-pane fade" id="results">
+            <div class="card p-4 shadow-sm border-0 rounded-4">
+                <h4 class="fw-bold mb-4 text-primary">🏆 Professional Grading Portal</h4>
+                <form action="/submit_result" method="POST">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="small fw-bold">Select Class</label>
+                            <select id="classSel" name="result_class" class="form-select" onchange="checkLab()" {% if role == 'parent' %}disabled{% endif %}>
+                                <option value="0">Choose Class...</option>
+                                {% for i in range(1, 11) %}<option value="{{i}}">Class {{i}}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small fw-bold">Student Roll No</label>
+                            <input type="text" name="roll_no" class="form-control" placeholder="Roll No..." required {% if role == 'parent' %}readonly{% endif %}>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small fw-bold">Exam Term</label>
+                            <select name="exam_term" class="form-select" {% if role == 'parent' %}disabled{% endif %}>
+                                <option>Mid-Term</option><option>Final-Term</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="bg-light p-3 rounded-3">
+                        <h6 class="fw-bold mb-3 small text-muted text-uppercase">Academic Marks (Out of 100)</h6>
+                        <div class="row g-2">
+                            {% for sub in ['English', 'Maths', 'Urdu', 'Science', 'Islamiat', 'Computer', 'Physics', 'Chemistry'] %}
+                            <div class="col-md-3 col-6">
+                                <div class="p-2 border rounded bg-white">
+                                    <label class="small d-block fw-bold mb-1">{{ sub }}</label>
+                                    <input type="number" name="{{ sub.lower() }}" class="form-control form-control-sm" placeholder="0-100" min="0" max="100" {% if role == 'parent' %}readonly{% endif %}>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div id="labs" class="lab-box d-none mt-4 p-3 border-start border-warning border-4 bg-light">
+                        <h6 class="fw-bold text-warning mb-3">Practical Lab Marks</h6>
+                        <div class="row g-2">
+                            <div class="col-md-3"><label class="small fw-bold">Phy Lab</label><input type="number" name="phy_lab" class="form-control" min="0" max="100" {% if role == 'parent' %}readonly{% endif %}></div>
+                            <div class="col-md-3"><label class="small fw-bold">Chem Lab</label><input type="number" name="chem_lab" class="form-control" min="0" max="100" {% if role == 'parent' %}readonly{% endif %}></div>
+                            <div class="col-md-3"><label class="small fw-bold">Bio Lab</label><input type="number" name="bio_lab" class="form-control" min="0" max="100" {% if role == 'parent' %}readonly{% endif %}></div>
+                            <div class="col-md-3"><label class="small fw-bold">Comp Lab</label><input type="number" name="comp_lab" class="form-control" min="0" max="100" {% if role == 'parent' %}readonly{% endif %}></div>
+                        </div>
+                    </div>
+                    {% if role == 'admin' %}
+                    <button type="submit" class="btn btn-grad w-100 mt-4 py-3 fw-bold rounded-3 shadow">SAVE & GENERATE TRANSCRIPT</button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <!-- ===== ATTENDANCE TAB ===== -->
+        <div class="tab-pane fade" id="attendance">
+            <div class="row g-4">
+
+                {% if role == 'admin' %}
+                <!-- Mark Attendance Form -->
+                <div class="col-12">
+                    <div class="card p-4 border-top border-success border-5 shadow-sm rounded-4">
+                        <h4 class="fw-bold text-success mb-4"><i class="fas fa-calendar-plus me-2"></i>Mark Daily Attendance</h4>
+                        <form action="/mark_attendance" method="POST" class="row g-3">
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Student Roll No</label>
+                                <input type="text" name="roll_no" class="form-control" placeholder="Enter Roll No" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Date</label>
+                                <input type="date" name="att_date" class="form-control" required value="{{ today }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Status</label>
+                                <select name="status" class="form-select">
+                                    <option value="Present">✅ Present</option>
+                                    <option value="Absent">❌ Absent</option>
+                                </select>
+                            </div>
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-success px-5 fw-bold rounded-pill">
+                                    <i class="fas fa-check me-2"></i>Mark Attendance
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Attendance Records Table -->
+                <div class="col-12">
+                    <div class="card p-4 border-0 shadow-sm rounded-4">
+                        <h5 class="fw-bold text-success mb-3"><i class="fas fa-list-check me-2"></i>Attendance Records</h5>
+
+                        <!-- Monthly Summary per student -->
+                        {% if students %}
+                        <h6 class="text-muted mb-3 small text-uppercase fw-bold">Monthly Summary</h6>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-hover">
+                                <thead class="table-success">
+                                    <tr><th>Student Name</th><th>Roll No</th><th>Class</th><th>Total Present</th><th>Total Absent</th><th>Attendance %</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for s in students %}
+                                    {% set s_att = attendance | selectattr('roll_no', 'equalto', s.roll_no) | list %}
+                                    {% set present_count = s_att | selectattr('status', 'equalto', 'Present') | list | length %}
+                                    {% set absent_count = s_att | selectattr('status', 'equalto', 'Absent') | list | length %}
+                                    {% set total = present_count + absent_count %}
+                                    {% set pct = ((present_count / total) * 100) | round(1) if total > 0 else 0 %}
+                                    {% if total > 0 %}
+                                    <tr>
+                                        <td><strong>{{ s.name }}</strong></td>
+                                        <td><code>{{ s.roll_no }}</code></td>
+                                        <td>{{ s.student_class }}</td>
+                                        <td><span class="present-badge">{{ present_count }} Present</span></td>
+                                        <td><span class="absent-badge">{{ absent_count }} Absent</span></td>
+                                        <td>
+                                            <strong>{{ pct }}%</strong>
+                                            <div class="score-bar">
+                                                <div class="score-fill" style="width:{{ pct }}%; background: {% if pct >= 75 %}#28a745{% elif pct >= 50 %}#ffc107{% else %}#dc3545{% endif %};"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+
+                        <!-- Daily Records -->
+                        <h6 class="text-muted mb-3 small text-uppercase fw-bold">Daily Records</h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr><th>#</th><th>Student Name</th><th>Roll No</th><th>Class</th><th>Date</th><th>Status</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for a in attendance %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td><strong>{{ a.student_name }}</strong></td>
+                                        <td><code>{{ a.roll_no }}</code></td>
+                                        <td>{{ a.student_class }}</td>
+                                        <td>{{ a.date }}</td>
+                                        <td>
+                                            {% if a.status == 'Present' %}
+                                            <span class="present-badge">✅ Present</span>
+                                            {% else %}
+                                            <span class="absent-badge">❌ Absent</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="6" class="text-center text-muted py-4">Koi attendance record nahi hai abhi.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== DISCIPLINE TAB ===== -->
+        <div class="tab-pane fade" id="discipline">
+            <div class="row g-4">
+
+                {% if role == 'admin' %}
+                <!-- Add Discipline Score Form -->
+                <div class="col-12">
+                    <div class="card p-4 border-top border-warning border-5 shadow-sm rounded-4">
+                        <h4 class="fw-bold text-warning mb-4"><i class="fas fa-star me-2"></i>Monthly Discipline Score</h4>
+                        <form action="/add_discipline" method="POST" class="row g-3">
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Student Roll No</label>
+                                <input type="text" name="roll_no" class="form-control" placeholder="Enter Roll No" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Month</label>
+                                <select name="month" class="form-select">
+                                    <option>January</option><option>February</option><option>March</option>
+                                    <option>April</option><option>May</option><option>June</option>
+                                    <option>July</option><option>August</option><option>September</option>
+                                    <option>October</option><option>November</option><option>December</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Discipline Score (0-100)</label>
+                                <input type="number" name="score" class="form-control" min="0" max="100" placeholder="0-100" required>
+                                <small class="text-muted">90-100: Excellent | 75-89: Good | 50-74: Average | 0-49: Poor</small>
+                            </div>
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-warning px-5 fw-bold rounded-pill text-dark">
+                                    <i class="fas fa-save me-2"></i>Save Score
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Discipline Records Table -->
+                <div class="col-12">
+                    <div class="card p-4 border-0 shadow-sm rounded-4">
+                        <h5 class="fw-bold text-warning mb-3"><i class="fas fa-chart-bar me-2"></i>Discipline Score Records</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-warning">
+                                    <tr><th>#</th><th>Student Name</th><th>Roll No</th><th>Class</th><th>Month</th><th>Score</th><th>Rating</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for d in discipline %}
+                                    {% if d.score >= 90 %}{% set rating = 'Excellent' %}{% set color = '#28a745' %}
+                                    {% elif d.score >= 75 %}{% set rating = 'Good' %}{% set color = '#17a2b8' %}
+                                    {% elif d.score >= 50 %}{% set rating = 'Average' %}{% set color = '#ffc107' %}
+                                    {% else %}{% set rating = 'Poor' %}{% set color = '#dc3545' %}{% endif %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td><strong>{{ d.student_name }}</strong></td>
+                                        <td><code>{{ d.roll_no }}</code></td>
+                                        <td>{{ d.student_class }}</td>
+                                        <td>{{ d.month }}</td>
+                                        <td>
+                                            <strong>{{ d.score }}/100</strong>
+                                            <div class="score-bar">
+                                                <div class="score-fill" style="width:{{ d.score }}%; background:{{ color }};"></div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge rounded-pill" style="background:{{ color }}; color:white; padding: 6px 14px;">{{ rating }}</span></td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="7" class="text-center text-muted py-4">Koi discipline record nahi hai abhi.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PTM & MEETINGS TAB ===== -->
+        <div class="tab-pane fade" id="ptm">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card p-4 border-top border-info border-5 shadow-sm rounded-4">
+                        <h4 class="fw-bold text-info mb-3"><i class="fas fa-calendar-plus me-2"></i>PTM Scheduler</h4>
+                        <form action="/schedule_ptm" method="POST">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="small fw-bold">Meeting Date</label>
+                                    <input type="date" name="m_date" class="form-control" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="small fw-bold">Meeting Time</label>
+                                    <input type="time" name="m_time" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <label class="small fw-bold">Parent Name / Student Roll No</label>
+                                <input type="text" name="p_info" class="form-control" placeholder="Parent Name / Student Roll No" required>
+                            </div>
+                            {% if role == 'admin' %}
+                            <button type="submit" class="btn btn-info text-white w-100 mt-3 fw-bold rounded-3">
+                                <i class="fas fa-calendar-check me-2"></i>Schedule Meeting
+                            </button>
+                            {% else %}
+                            <div class="mt-3"><span class="badge bg-warning text-dark p-2 rounded-pill"><i class="fas fa-lock me-1"></i> View Only Mode</span></div>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card p-4 border-top border-danger border-5 shadow-sm rounded-4">
+                        <h4 class="fw-bold text-danger mb-3"><i class="fas fa-comment-dots me-2"></i>Complaint Box</h4>
+                        <form action="/complaint" method="POST">
+                            <textarea name="feedback" class="form-control mb-3" rows="5" placeholder="Write your feedback here..." required></textarea>
+                            <button type="submit" class="btn btn-danger w-100 fw-bold rounded-3">
+                                <i class="fas fa-paper-plane me-2"></i>Submit to Admin
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card p-4 border-0 shadow-sm rounded-4">
+                        <h5 class="fw-bold text-info mb-3"><i class="fas fa-calendar-check me-2"></i>Scheduled Meetings</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-info">
+                                    <tr><th>#</th><th>Date</th><th>Time</th><th>Parent / Roll No</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for m in meetings %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td><i class="fas fa-calendar me-1 text-info"></i>{{ m.date }}</td>
+                                        <td><i class="fas fa-clock me-1 text-info"></i>{{ m.time }}</td>
+                                        <td>{{ m.parent_info }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="4" class="text-center text-muted py-4">Koi meeting schedule nahi hui abhi.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function checkLab() {
+        let val = document.getElementById('classSel').value;
+        let lb = document.getElementById('labs');
+        (val == "9" || val == "10") ? lb.classList.remove('d-none') : lb.classList.add('d-none');
+    }
+</script>
+</body>
+</html>
