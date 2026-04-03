@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Result Transcript</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #1e3c72; --secondary: #2a5298; }
+        body { background: #f0f4f8; font-family: 'Inter', sans-serif; }
+
+        .transcript-wrapper {
+            max-width: 850px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+        .transcript-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 35px 40px;
+            text-align: center;
+        }
+        .transcript-header h2 { font-size: 1.8rem; font-weight: 800; letter-spacing: 2px; }
+        .transcript-header p { opacity: 0.8; margin: 0; font-size: 0.95rem; }
+        .school-icon { font-size: 3rem; margin-bottom: 10px; }
+
+        .student-info {
+            background: #f8f9fc;
+            padding: 20px 40px;
+            border-bottom: 2px dashed #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .info-item { font-size: 0.9rem; }
+        .info-item span { font-weight: 700; color: var(--primary); }
+
+        .marks-section { padding: 30px 40px; }
+        .marks-section h5 { color: var(--primary); font-weight: 700; border-left: 4px solid var(--primary); padding-left: 12px; margin-bottom: 20px; }
+
+        .marks-table { width: 100%; border-collapse: collapse; }
+        .marks-table th { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: white; padding: 12px 16px; text-align: left; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+        .marks-table td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
+        .marks-table tr:hover td { background: #f8f9fc; }
+        .marks-table tr:last-child td { border-bottom: none; }
+
+        .grade-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+        .grade-A { background: #d4edda; color: #155724; }
+        .grade-B { background: #cce5ff; color: #004085; }
+        .grade-C { background: #fff3cd; color: #856404; }
+        .grade-F { background: #f8d7da; color: #721c24; }
+
+        .summary-box {
+            margin: 0 40px 30px;
+            background: linear-gradient(135deg, #f8f9fc, #e9ecef);
+            border-radius: 15px;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+            border: 2px solid #dee2e6;
+        }
+        .summary-item { text-align: center; }
+        .summary-item .value { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .summary-item .label { font-size: 0.8rem; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; }
+
+        .result-status {
+            text-align: center;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border-radius: 10px;
+            margin: 0 40px 30px;
+        }
+        .status-pass { background: #d4edda; color: #155724; }
+        .status-fail { background: #f8d7da; color: #721c24; }
+
+        .transcript-footer {
+            background: #f8f9fc;
+            padding: 20px 40px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .btn-print { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: white; border: none; padding: 10px 30px; border-radius: 30px; font-weight: 700; }
+        .btn-back { border: 2px solid var(--primary); color: var(--primary); padding: 10px 30px; border-radius: 30px; font-weight: 700; background: white; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .transcript-wrapper { box-shadow: none; margin: 0; border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="text-center mt-4 mb-3 no-print">
+    <a href="/dashboard/{{ role }}" class="btn btn-back me-3"><i class="fas fa-arrow-left me-2"></i>Back to Dashboard</a>
+    <button onclick="window.print()" class="btn btn-print"><i class="fas fa-print me-2"></i>Print Transcript</button>
+</div>
+
+<div class="transcript-wrapper">
+
+    <div class="transcript-header">
+        <div class="school-icon">🏫</div>
+        <h2>GSM SMART SCHOOL</h2>
+        <p>Official Academic Result Transcript</p>
+        <p class="mt-1" style="opacity:0.6; font-size:0.8rem;">Generated on: {{ now }}</p>
+    </div>
+
+    <div class="student-info">
+        <div class="info-item">Student Name: <span>{{ student.name if student else 'N/A' }}</span></div>
+        <div class="info-item">Roll No: <span>{{ result.roll_no }}</span></div>
+        <div class="info-item">Class: <span>Class {{ result.result_class }}</span></div>
+        <div class="info-item">Exam Term: <span>{{ result.exam_term }}</span></div>
+    </div>
+
+    <div class="marks-section">
+        <h5><i class="fas fa-book-open me-2"></i>Academic Subjects</h5>
+        <table class="marks-table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Marks Obtained</th>
+                    <th>Total Marks</th>
+                    <th>Percentage</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set subjects = [
+                    ('English', result.english),
+                    ('Mathematics', result.maths),
+                    ('Urdu', result.urdu),
+                    ('Science', result.science),
+                    ('Islamiat', result.islamiat),
+                    ('Computer', result.computer),
+                    ('Physics', result.physics),
+                    ('Chemistry', result.chemistry)
+                ] %}
+                {% for name, marks in subjects %}
+                {% if marks >= 80 %}{% set grade = 'A' %}
+                {% elif marks >= 65 %}{% set grade = 'B' %}
+                {% elif marks >= 50 %}{% set grade = 'C' %}
+                {% else %}{% set grade = 'F' %}{% endif %}
+                <tr>
+                    <td><strong>{{ name }}</strong></td>
+                    <td>{{ marks }}</td>
+                    <td>100</td>
+                    <td>{{ marks }}%</td>
+                    <td><span class="grade-badge grade-{{ grade }}">{{ grade }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if result.result_class in ['9', '10'] %}
+        <h5 class="mt-4"><i class="fas fa-flask me-2"></i>Practical Lab Marks</h5>
+        <table class="marks-table">
+            <thead>
+                <tr><th>Lab Subject</th><th>Marks Obtained</th><th>Total Marks</th><th>Percentage</th><th>Grade</th></tr>
+            </thead>
+            <tbody>
+                {% set labs = [
+                    ('Physics Lab', result.phy_lab),
+                    ('Chemistry Lab', result.chem_lab),
+                    ('Biology Lab', result.bio_lab),
+                    ('Computer Lab', result.comp_lab)
+                ] %}
+                {% for name, marks in labs %}
+                {% if marks > 0 %}
+                {% if marks >= 80 %}{% set grade = 'A' %}
+                {% elif marks >= 65 %}{% set grade = 'B' %}
+                {% elif marks >= 50 %}{% set grade = 'C' %}
+                {% else %}{% set grade = 'F' %}{% endif %}
+                <tr>
+                    <td><strong>{{ name }}</strong></td>
+                    <td>{{ marks }}</td>
+                    <td>100</td>
+                    <td>{{ marks }}%</td>
+                    <td><span class="grade-badge grade-{{ grade }}">{{ grade }}</span></td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    <div class="summary-box">
+        <div class="summary-item">
+            <div class="value">{{ total_marks }}</div>
+            <div class="label">Total Marks</div>
+        </div>
+        <div class="summary-item">
+            <div class="value">{{ max_marks }}</div>
+            <div class="label">Max Marks</div>
+        </div>
+        <div class="summary-item">
+            <div class="value">{{ percentage }}%</div>
+            <div class="label">Percentage</div>
+        </div>
+        <div class="summary-item">
+            <div class="value">{{ overall_grade }}</div>
+            <div class="label">Overall Grade</div>
+        </div>
+    </div>
+
+    <div class="result-status {{ 'status-pass' if passed else 'status-fail' }}">
+        {% if passed %}
+        <i class="fas fa-check-circle me-2"></i> RESULT: PASS — Congratulations!
+        {% else %}
+        <i class="fas fa-times-circle me-2"></i> RESULT: FAIL — Better Luck Next Time
+        {% endif %}
+    </div>
+
+    <div class="transcript-footer">
+        <p class="mb-1"><strong>GSM Smart School Solutions</strong> — Official Document</p>
+        <p class="mb-0">This is a computer-generated transcript. No signature required.</p>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
