@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GSM School - Portal Selection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f0f2f5; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
+        .card-box { background: white; padding: 50px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 450px; }
+        .btn-custom { width: 100%; margin-top: 15px; padding: 15px; border-radius: 12px; font-weight: bold; border: none; transition: 0.3s; }
+        .btn-admin { background: #1e3c72; color: white; }
+        .btn-parent { background: #e11d48; color: white; }
+        .btn-custom:hover { transform: translateY(-3px); opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="card-box">
+        <h2 class="fw-bold">GSM Smart School</h2>
+        <p class="text-muted">SELECT YOUR PORTAL</p>
+        
+        <button class="btn-custom btn-admin" onclick="checkAdmin()">PORTAL AS ADMIN</button>
+        <button class="btn-custom btn-parent" onclick="window.location.href='/dashboard/parent'">PORTAL AS PARENT</button>
+    </div>
+
+    <script>
+        function checkAdmin() {
+            let pass = prompt("PORTAL AS ADMIN:");
+            if (pass === "FATIMA@0987") {
+                window.location.href = "/dashboard/admin";
+            } else {
+                alert("Invalid Password! Access is restricted to Administrators only.");
+            }
+        }
+    </script>
+</body>
+</html>
